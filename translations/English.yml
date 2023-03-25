@@ -1,0 +1,3 @@
+set_url: "Set URL"
+sail_url: "Sail URL"
+server_sail_url_deny: "Server is in control of the URL, denied"
