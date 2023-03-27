@@ -47,25 +47,48 @@ namespace VikingSails.Patches
             if (m_nview?.GetZDO() != null)
             {
                 InvokeRepeating("UpdateText", 2f, 2f);
+                this.m_nview.Register<string>(nameof(GetNewImageAndApply), new Action<long, string>(GetNewImageAndApply));
             }
         }
 
 
         public string GetHoverText()
         {
+            if (VikingSailsPlugin.useServerSailURL.Value == VikingSailsPlugin.Toggle.On)
+            {
+                return string.Empty;
+            }
+
             if (!VikingSailsPlugin.AllowInput()) return string.Empty;
 
-            return Localization.instance.Localize($"{Environment.NewLine}[<color=#FFFF00><b>$KEY_Use</b></color>] $set_url") + "\n" +
-                   GetText();
+            if (VikingSailsPlugin.showURLOnHover.Value == VikingSailsPlugin.Toggle.On)
+            {
+                return Localization.instance.Localize(
+                           $"{Environment.NewLine}[<color=#FFFF00><b>$KEY_Use</b></color>] $set_url") + "\n" +
+                       GetText();
+            }
+
+            return Localization.instance.Localize(
+                $"{Environment.NewLine}[<color=#FFFF00><b>$KEY_Use</b></color>] $set_url");
         }
 
         public string GetHoverName()
         {
+            if (VikingSailsPlugin.useServerSailURL.Value == VikingSailsPlugin.Toggle.On)
+            {
+                return string.Empty;
+            }
+
             return !VikingSailsPlugin.AllowInput() ? string.Empty : Localization.instance.Localize("$sail_url");
         }
 
         public bool Interact(Humanoid character, bool hold, bool alt)
         {
+            if (hold)
+            {
+                return false;
+            }
+
             if (VikingSailsPlugin.useServerSailURL.Value == VikingSailsPlugin.Toggle.On)
             {
                 character?.Message(MessageHud.MessageType.Center, Localization.instance.Localize($"<color=#FFFF00><b>$piece_noaccess</b></color> {Environment.NewLine} $server_sail_url_deny"));
@@ -73,11 +96,7 @@ namespace VikingSails.Patches
             }
 
             if (!VikingSailsPlugin.AllowInput()) return false;
-            if (hold)
-            {
-                return false;
-            }
-
+            
             if (!PrivateArea.CheckAccess(transform.position, 0f, true))
             {
                 character?.Message(MessageHud.MessageType.Center, "<color=#FFFF00><b>$piece_noaccess</b></color>");
@@ -92,7 +111,7 @@ namespace VikingSails.Patches
                     if (!WardMonoscript.CheckAccess(transform.position, 0f, true))
                     {
                         // private zone
-                       return false;
+                        return false;
                     }
                 }
             }
@@ -123,13 +142,46 @@ namespace VikingSails.Patches
         public void SetText(string text)
         {
             if (!PrivateArea.CheckAccess(transform.position, 0f, true)) { return; }
-            StartCoroutine(DownloadTexture(text, ApplyTexture));
+            if (WardIsLovePlugin.IsLoaded())
+            {
+                if (WardIsLovePlugin.WardEnabled().Value &&
+                    WardMonoscript.CheckInWardMonoscript(transform.position))
+                {
+                    if (!WardMonoscript.CheckAccess(transform.position, 0f, true))
+                    {
+                        // private zone
+                        return;
+                    }
+                }
+            }
+            m_nview.InvokeRPC(ZNetView.Everybody, nameof(GetNewImageAndApply), text);
+        }
+
+        private void GetNewImageAndApply(long uid, string url)
+        {
+            StartCoroutine(DownloadTexture(url, ApplyTexture));
         }
 
         private void ApplyTexture(string url, Texture2D obj)
         {
-            m_nview.ClaimOwnership();
-            m_nview.GetZDO().Set("VikingSailURL", url);
+            if (!m_nview.HasOwner())
+            {
+                m_nview.ClaimOwnership();
+                UpdateTexture(url, obj);
+            }
+            else
+            {
+                UpdateTexture(url, obj);
+            }
+        }
+        
+        private void UpdateTexture(string url, Texture2D obj)
+        {
+            if (m_nview.IsOwner())
+            {
+                m_nview.GetZDO().Set("VikingSailURL", url);
+            }
+
             sailRenderer.material.SetTexture("_MainTex", string.IsNullOrWhiteSpace(url) ? origSailTexture : obj);
         }
 

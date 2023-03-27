@@ -19,7 +19,7 @@ namespace VikingSails
     public class VikingSailsPlugin : BaseUnityPlugin
     {
         internal const string ModName = "VikingSails";
-        internal const string ModVersion = "1.0.0";
+        internal const string ModVersion = "1.1.0";
         internal const string Author = "Azumatt";
         private const string ModGUID = Author + "." + ModName;
         private static string ConfigFileName = ModGUID + ".cfg";
@@ -53,6 +53,7 @@ namespace VikingSails
             serverSailURL = TextEntryConfig("1 - General", "Server Sail URL", "https://i.imgur.com/TbcJ3LU.png", new ConfigDescription("Put a valid image URL here, this entry field should contain the URL of the image to use for the sails when the `Use Server Sail URL` toggle is on.", null, new ConfigurationManagerAttributes { Order = 4 }));
             keyConfig = config("1 - General", "Edit Key", new KeyboardShortcut(KeyCode.Mouse1), new ConfigDescription("A keyboard shortcut that allows the player to interact with the ship to change the sail image", null, new ConfigurationManagerAttributes { Order = 3 }), false);
             requireKeyConfig = config("1 - General", "Require Key Press", Toggle.Off, new ConfigDescription($"A toggle that when turned on, requires the player to hold down the `Edit Key` <{keyConfig.Value.ToString()}> in order to interact with the ship to change the sails.", null, new ConfigurationManagerAttributes { Order = 2 }));
+            showURLOnHover = config("1 - General", "Show URL On Hover", Toggle.Off, new ConfigDescription($"A toggle that when turned on, will show the URL after the interaction prompt so you might see the URL at quick glance. Note only will show to you if you have access to change the URL", null, new ConfigurationManagerAttributes { Order = 1 }), false);
             Assembly assembly = Assembly.GetExecutingAssembly();
             _harmony.PatchAll(assembly);
             SetupWatcher();
@@ -144,6 +145,7 @@ namespace VikingSails
 
         private static ConfigEntry<Toggle> _serverConfigLocked = null!;
         private static ConfigEntry<Toggle> requireKeyConfig = null!;
+        internal static ConfigEntry<Toggle> showURLOnHover = null!;
         private static ConfigEntry<KeyboardShortcut> keyConfig = null!;
         internal static ConfigEntry<Toggle> useServerSailURL = null!;
         internal static ConfigEntry<string> serverSailURL = null!;

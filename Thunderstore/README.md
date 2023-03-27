@@ -43,6 +43,10 @@ Require Key Press [Synced with Server]
 * A toggle that when turned on, requires the player to hold down the `Edit Key` in order to interact with the ship to change the sails.
     * Default Value: On
 
+Show URL On Hover [Synced with Server]
+* A toggle that when turned on, will show the URL after the interaction prompt so you might see the URL at quick glance. Note only will show to you if you have access to change the URL
+    * Default Value: Off
+
     To interact with a ship and change its sails, look at the ship and hold down the `Edit Key` (default: right mouse button). If `Require Key Press` is turned off, you can simply interact with the ship to change the sails via the prompt URL window. If `Require Key Press` is turned on, you must hold down the `Edit Key` and then interact.
 
     If `Use Server Sail URL` is turned on, the ship's sails will be updated with the URL set in the `Server Sail URL` field. If `Use Server Sail URL` is turned off, you can set the URL for the sails by interacting with the ship. This will open a text entry field where you can paste the URL for the image you want to use.
