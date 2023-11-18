@@ -51,7 +51,7 @@ namespace VikingSails
             {
                 __instance.m_connectionFailedError.fontSizeMax = 25;
                 __instance.m_connectionFailedError.fontSizeMin = 15;
-                __instance.m_connectionFailedError.text += "\n" + VikingSailsPlugin.ConnectionError;
+                __instance.m_connectionFailedError.text += $"\n{VikingSailsPlugin.ConnectionError}";
             }
         }
     }
@@ -76,9 +76,7 @@ namespace VikingSails
         public static void RPC_VikingSails_Version(ZRpc rpc, ZPackage pkg)
         {
             string? version = pkg.ReadString();
-            VikingSailsPlugin.VikingSailsLogger.LogInfo("Version check, local: " +
-                                                        VikingSailsPlugin.ModVersion +
-                                                        ",  remote: " + version);
+            VikingSailsPlugin.VikingSailsLogger.LogInfo($"Version check, local: {VikingSailsPlugin.ModVersion},  remote: {version}");
             if (version != VikingSailsPlugin.ModVersion)
             {
                 VikingSailsPlugin.ConnectionError =

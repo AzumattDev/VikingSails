@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Linq;
 using BepInEx;
+using BepInEx.Bootstrap;
 using UnityEngine;
 using UnityEngine.Networking;
 using VikingSails.Compatibility.WardIsLove;
@@ -11,13 +12,14 @@ namespace VikingSails.Patches
     public class VikingShipURL : MonoBehaviour, Hoverable, Interactable, TextReceiver
     {
         /* Credit to RoloPogo for the original code this was worked off of. */
-        
+
         private string m_url;
         public string m_name = "VikingSailURL";
         private const int m_characterLimit = int.MaxValue;
 
         private SkinnedMeshRenderer sailRenderer;
         private Texture origSailTexture;
+        private Texture2D lastAppliedTexture;
 
         private ZNetView m_nview;
 
@@ -48,6 +50,12 @@ namespace VikingSails.Patches
             {
                 InvokeRepeating("UpdateText", 2f, 2f);
                 this.m_nview.Register<string>(nameof(GetNewImageAndApply), new Action<long, string>(GetNewImageAndApply));
+                if (Chainloader.PluginInfos.ContainsKey("balrond.astafaraios.BalrondShipyard"))
+                {
+                    // Fix texture for Balrond's Shipyard, have to do it this way because of how Balrond's Shipyard works
+                    // as to not lose the "upgraded sail" or unpatch the mod's method. Not really a peformance issue in the grand scheme of things.
+                    this.InvokeRepeating("FixTexture", 0.0f, 0.5f);
+                }
             }
         }
 
@@ -63,13 +71,10 @@ namespace VikingSails.Patches
 
             if (VikingSailsPlugin.showURLOnHover.Value == VikingSailsPlugin.Toggle.On)
             {
-                return Localization.instance.Localize(
-                           $"{Environment.NewLine}[<color=#FFFF00><b>$KEY_Use</b></color>] $set_url") + "\n" +
-                       GetText();
+                return $"{Localization.instance.Localize($"{Environment.NewLine}[<color=#FFFF00><b>$KEY_Use</b></color>] $set_url")}\n{GetText()}";
             }
 
-            return Localization.instance.Localize(
-                $"{Environment.NewLine}[<color=#FFFF00><b>$KEY_Use</b></color>] $set_url");
+            return Localization.instance.Localize($"{Environment.NewLine}[<color=#FFFF00><b>$KEY_Use</b></color>] $set_url");
         }
 
         public string GetHoverName()
@@ -96,13 +101,13 @@ namespace VikingSails.Patches
             }
 
             if (!VikingSailsPlugin.AllowInput()) return false;
-            
+
             if (!PrivateArea.CheckAccess(transform.position, 0f, true))
             {
                 character?.Message(MessageHud.MessageType.Center, "<color=#FFFF00><b>$piece_noaccess</b></color>");
                 return false;
             }
-            
+
             if (WardIsLovePlugin.IsLoaded())
             {
                 if (WardIsLovePlugin.WardEnabled().Value &&
@@ -123,8 +128,19 @@ namespace VikingSails.Patches
         private void UpdateText()
         {
             string text = GetText();
-            if (m_url == text) { return; }
+            if (m_url == text)
+            {
+                return;
+            }
+
             SetText(text);
+        }
+
+        private void FixTexture()
+        {
+            // If the current texture isn't the last applied texture from URL, reapply it.
+            if (sailRenderer.material.GetTexture("_MainTex") == lastAppliedTexture || lastAppliedTexture == null) return;
+            sailRenderer.material.SetTexture("_MainTex", string.IsNullOrWhiteSpace(m_url) ? origSailTexture : lastAppliedTexture);
         }
 
         public string GetText()
@@ -141,7 +157,11 @@ namespace VikingSails.Patches
 
         public void SetText(string text)
         {
-            if (!PrivateArea.CheckAccess(transform.position, 0f, true)) { return; }
+            if (!PrivateArea.CheckAccess(transform.position, 0f, true))
+            {
+                return;
+            }
+
             if (WardIsLovePlugin.IsLoaded())
             {
                 if (WardIsLovePlugin.WardEnabled().Value &&
@@ -154,6 +174,7 @@ namespace VikingSails.Patches
                     }
                 }
             }
+
             m_nview.InvokeRPC(ZNetView.Everybody, nameof(GetNewImageAndApply), text);
         }
 
@@ -174,7 +195,7 @@ namespace VikingSails.Patches
                 UpdateTexture(url, obj);
             }
         }
-        
+
         private void UpdateTexture(string url, Texture2D obj)
         {
             if (m_nview.IsOwner())
@@ -182,6 +203,7 @@ namespace VikingSails.Patches
                 m_nview.GetZDO().Set("VikingSailURL", url);
             }
 
+            lastAppliedTexture = obj;
             sailRenderer.material.SetTexture("_MainTex", string.IsNullOrWhiteSpace(url) ? origSailTexture : obj);
         }
 

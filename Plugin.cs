@@ -19,10 +19,10 @@ namespace VikingSails
     public class VikingSailsPlugin : BaseUnityPlugin
     {
         internal const string ModName = "VikingSails";
-        internal const string ModVersion = "1.1.2";
+        internal const string ModVersion = "1.1.3";
         internal const string Author = "Azumatt";
-        private const string ModGUID = Author + "." + ModName;
-        private static string ConfigFileName = ModGUID + ".cfg";
+        private const string ModGUID = $"{Author}.{ModName}";
+        private static string ConfigFileName = $"{ModGUID}.cfg";
         private static string ConfigFileFullPath = Paths.ConfigPath + Path.DirectorySeparatorChar + ConfigFileName;
         internal static string ConnectionError = "";
         private readonly Harmony _harmony = new(ModGUID);
