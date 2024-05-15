@@ -1,9 +1,9 @@
 {
   "name": "VikingSails",
-  "version_number": "1.1.3",
+  "version_number": "1.1.4",
   "website_url": "https://github.com/AzumattDev/VikingSails",
   "description": "VikingSails is a mod that allows you to change the sails of ships. You can use URLs to set the sails, or if the server forces the URL it will use that one.",
   "dependencies": [
-    "denikson-BepInExPack_Valheim-5.4.2200"
+    "denikson-BepInExPack_Valheim-5.4.2202"
   ]
 }
